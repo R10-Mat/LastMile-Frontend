@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const FLOTA = axios.create({ baseURL: "http://localhost:8000" });
+const FLOTA = axios.create({
+    baseURL: import.meta.env.VITE_FLOTA_URL || "http://localhost:8000"
+});
 
 export const getConductores = () => FLOTA.get("/flota/conductores/");
 export const getConductor = (id) => FLOTA.get(`/flota/conductores/${id}`);

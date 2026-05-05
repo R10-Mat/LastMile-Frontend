@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const PEDIDOS = axios.create({ baseURL: "http://localhost:8080" });
+const PEDIDOS = axios.create({
+  baseURL: import.meta.env.VITE_PEDIDOS_URL || "http://localhost:8080"
+});
 
 export const getPedidos = (estado) =>
   PEDIDOS.get("/api/pedidos", { params: estado ? { estado } : {} });
