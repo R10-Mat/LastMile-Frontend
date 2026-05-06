@@ -7,4 +7,4 @@ const EVENTOS = axios.create({
 export const getEventosByPedido = (pedidoId) =>
   EVENTOS.get(`/eventos/pedido/${pedidoId}`);
 
-export const createEvento = (data) => EVENTOS.post("/eventos", data);
+export const createEvento = (data) => EVENTOS.post("/eventos/", data);
