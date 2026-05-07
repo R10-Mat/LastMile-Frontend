@@ -1,8 +1,6 @@
-import axios from "axios";
+import apiClient from "./apiClient";
 
-const EVENTOS = axios.create({
-  baseURL: import.meta.env.VITE_EVENTOS_URL || "http://localhost:3000"
-});
+const EVENTOS = apiClient;
 
 export const getEventosByPedido = (pedidoId) =>
   EVENTOS.get(`/eventos/pedido/${pedidoId}`);

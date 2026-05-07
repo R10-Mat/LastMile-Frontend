@@ -1,8 +1,6 @@
-import axios from "axios";
+import apiClient from "./apiClient";
 
-const ORQUESTADOR = axios.create({
-  baseURL: import.meta.env.VITE_ORQUESTADOR_URL || "http://localhost:8001"
-});
+const ORQUESTADOR = apiClient;
 
 export const getResumen = () => ORQUESTADOR.get("/dashboard/resumen");
 
