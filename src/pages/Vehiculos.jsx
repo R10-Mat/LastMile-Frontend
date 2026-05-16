@@ -19,7 +19,7 @@ export default function Vehiculos() {
   const fetch = async (currentPage = page) => {
     setLoading(true);
     try {
-      const [rv, rc] = await Promise.all([getVehiculos(currentPage, 20), getConductores(0, 1000)]);
+      const [rv, rc] = await Promise.all([getVehiculos(currentPage, 20), getConductores(0, 100)]);
       const arr = Array.isArray(rv.data) ? rv.data : rv.data?.content ?? [];
       setVehiculos(arr);
       if (rv.data?.totalPages !== undefined) setTotalPages(rv.data.totalPages);
