@@ -19,12 +19,16 @@ export default function Conductores() {
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchConductores = async () => {
+  const fetchConductores = async (currentPage = page) => {
     setLoading(true);
     try {
-      const { data } = await getConductores();
-      setConductores(data);
+      const { data } = await getConductores(currentPage, 20);
+      const arr = Array.isArray(data) ? data : data?.content ?? [];
+      setConductores(arr);
+      if (data?.totalPages !== undefined) setTotalPages(data.totalPages);
     } catch {
       setError("No se pudo conectar al servicio de flota.");
     } finally {
@@ -32,7 +36,7 @@ export default function Conductores() {
     }
   };
 
-  useEffect(() => { fetchConductores(); }, []);
+  useEffect(() => { fetchConductores(page); }, [page]);
 
   const openCreate = () => {
     setForm(initialForm);
@@ -63,7 +67,7 @@ export default function Conductores() {
         setSuccess("Conductor registrado correctamente.");
       }
       closeModal();
-      fetchConductores();
+      fetchConductores(page);
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       setError(err.response?.data?.detail || "Error al guardar conductor.");
@@ -77,7 +81,7 @@ export default function Conductores() {
     try {
       await deleteConductor(id);
       setSuccess("Conductor eliminado.");
-      fetchConductores();
+      fetchConductores(page);
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       setError(err.response?.data?.detail || "Error al eliminar.");
@@ -149,6 +153,13 @@ export default function Conductores() {
             </table>
           )}
         </div>
+        {!loading && conductores.length > 0 && (
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "16px", padding: "16px", borderTop: "1px solid var(--border-color)", backgroundColor: "var(--surface-color)", borderBottomLeftRadius: "12px", borderBottomRightRadius: "12px" }}>
+            <button className="btn btn-ghost btn-sm" disabled={page === 0} onClick={() => setPage(p => Math.max(0, p - 1))}>Anterior</button>
+            <span style={{ fontSize: "14px", fontWeight: "500", color: "var(--text-muted)" }}>Página {page + 1} de {totalPages || 1}</span>
+            <button className="btn btn-ghost btn-sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}>Siguiente</button>
+          </div>
+        )}
       </div>
 
       {showModal && (

@@ -2,8 +2,8 @@ import apiClient from "./apiClient";
 
 const PEDIDOS = apiClient;
 
-export const getPedidos = (estado) =>
-  PEDIDOS.get("api/pedidos", { params: estado ? { estado } : {} });
+export const getPedidos = (estado, page = 0, size = 20) =>
+  PEDIDOS.get("api/pedidos", { params: { ...(estado ? { estado } : {}), page, size } });
 
 export const getPedido = (id) => PEDIDOS.get(`api/pedidos/${id}`);
 

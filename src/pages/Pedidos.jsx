@@ -31,13 +31,16 @@ export default function Pedidos() {
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchPedidos = async () => {
+  const fetchPedidos = async (currentPage = page) => {
     setLoading(true);
     try {
-      const { data } = await getPedidos(filtroEstado || undefined);
+      const { data } = await getPedidos(filtroEstado || undefined, currentPage, 20);
       const arr = Array.isArray(data) ? data : data?.content ?? [];
       setPedidos(arr);
+      if (data?.totalPages !== undefined) setTotalPages(data.totalPages);
     } catch {
       setError("No se pudo conectar al servicio de pedidos.");
     } finally {
@@ -45,7 +48,7 @@ export default function Pedidos() {
     }
   };
 
-  useEffect(() => { fetchPedidos(); }, [filtroEstado]);
+  useEffect(() => { fetchPedidos(page); }, [filtroEstado, page]);
 
   const openCreate = () => { setForm(initialForm); setError(""); setShowModal(true); };
   const closeModal = () => { setShowModal(false); setError(""); };
@@ -85,7 +88,7 @@ export default function Pedidos() {
       await createPedido(payload);
       setSuccess("Pedido creado correctamente.");
       closeModal();
-      fetchPedidos();
+      fetchPedidos(page);
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       setError(err.response?.data?.message || err.response?.data?.detail || "Error al crear pedido.");
@@ -98,7 +101,7 @@ export default function Pedidos() {
     setUpdatingId(id);
     try {
       await updateEstado(id, estado);
-      fetchPedidos();
+      fetchPedidos(page);
       setSuccess(`Pedido #${id} actualizado a ${estado}.`);
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
@@ -113,7 +116,7 @@ export default function Pedidos() {
     try {
       await deletePedido(id);
       setSuccess(`Pedido #${id} cancelado.`);
-      fetchPedidos();
+      fetchPedidos(page);
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       setError(err.response?.data?.message || "Error al cancelar pedido.");
@@ -124,7 +127,7 @@ export default function Pedidos() {
     <div className="page-content">
       <div className="page-actions">
         <h2>Pedidos</h2>
-        <select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}
+        <select value={filtroEstado} onChange={(e) => { setFiltroEstado(e.target.value); setPage(0); }}
           style={{ maxWidth: 160 }}>
           <option value="">Todos los estados</option>
           {ESTADOS.map((e) => <option key={e} value={e}>{e}</option>)}
@@ -194,6 +197,13 @@ export default function Pedidos() {
             </table>
           )}
         </div>
+        {!loading && pedidos.length > 0 && (
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "16px", padding: "16px", borderTop: "1px solid var(--border-color)", backgroundColor: "var(--surface-color)", borderBottomLeftRadius: "12px", borderBottomRightRadius: "12px" }}>
+            <button className="btn btn-ghost btn-sm" disabled={page === 0} onClick={() => setPage(p => Math.max(0, p - 1))}>Anterior</button>
+            <span style={{ fontSize: "14px", fontWeight: "500", color: "var(--text-muted)" }}>Página {page + 1} de {totalPages || 1}</span>
+            <button className="btn btn-ghost btn-sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}>Siguiente</button>
+          </div>
+        )}
       </div>
 
       {showModal && (

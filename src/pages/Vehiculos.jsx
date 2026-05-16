@@ -13,13 +13,19 @@ export default function Vehiculos() {
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetch = async () => {
+  const fetch = async (currentPage = page) => {
     setLoading(true);
     try {
-      const [rv, rc] = await Promise.all([getVehiculos(), getConductores()]);
-      setVehiculos(rv.data);
-      setConductores(rc.data);
+      const [rv, rc] = await Promise.all([getVehiculos(currentPage, 20), getConductores(0, 1000)]);
+      const arr = Array.isArray(rv.data) ? rv.data : rv.data?.content ?? [];
+      setVehiculos(arr);
+      if (rv.data?.totalPages !== undefined) setTotalPages(rv.data.totalPages);
+      
+      const arrC = Array.isArray(rc.data) ? rc.data : rc.data?.content ?? [];
+      setConductores(arrC);
     } catch {
       setError("No se pudo conectar al servicio de flota.");
     } finally {
@@ -27,7 +33,7 @@ export default function Vehiculos() {
     }
   };
 
-  useEffect(() => { fetch(); }, []);
+  useEffect(() => { fetch(page); }, [page]);
 
   const openCreate = () => { setForm(initialForm); setError(""); setShowModal(true); };
   const closeModal = () => { setShowModal(false); setError(""); };
@@ -40,7 +46,7 @@ export default function Vehiculos() {
       await createVehiculo({ ...form, capacidad_kg: parseFloat(form.capacidad_kg), conductor_id: parseInt(form.conductor_id) });
       setSuccess("Vehículo registrado correctamente.");
       closeModal();
-      fetch();
+      fetch(page);
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       setError(err.response?.data?.detail || "Error al registrar vehículo.");
@@ -108,6 +114,13 @@ export default function Vehiculos() {
             </table>
           )}
         </div>
+        {!loading && vehiculos.length > 0 && (
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "16px", padding: "16px", borderTop: "1px solid var(--border-color)", backgroundColor: "var(--surface-color)", borderBottomLeftRadius: "12px", borderBottomRightRadius: "12px" }}>
+            <button className="btn btn-ghost btn-sm" disabled={page === 0} onClick={() => setPage(p => Math.max(0, p - 1))}>Anterior</button>
+            <span style={{ fontSize: "14px", fontWeight: "500", color: "var(--text-muted)" }}>Página {page + 1} de {totalPages || 1}</span>
+            <button className="btn btn-ghost btn-sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}>Siguiente</button>
+          </div>
+        )}
       </div>
 
       {showModal && (
